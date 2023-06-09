@@ -1,0 +1,369 @@
+:root {
+  --font-color: hsl(0 0% 93%);
+  --bg-color: hsla(0, 0%, 15%);
+  --border-radius: 3px;
+  --size: 500px;
+  --tile-size: 30px;
+  --incorrect-color: hsl(0deg 100% 64%);
+  --mine-color: hsl(0deg 0% 54.9%);
+  --one-color: hsl(208 100% 69%);
+  --two-color: hsl(120 100% 40%);
+  --three-color: hsl(0 100% 78%);
+  --four-color: hsl(31 100% 57%);
+  --five-color: hsl(255 100% 82%);
+  --six-color: hsl(313 100% 76%);
+  --seven-color: hsl(175 49% 52%);
+  --eight-color: hsl(56 100% 38%);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui;
+  font-size: 14px;
+  color: var(--font-color);
+  background-color: var(--bg-color);
+}
+button {
+  border-radius: var(--border-radius);
+  transition: outline-offset 0.05s linear;
+}
+button,
+button:focus,
+button:active,
+button:hover {
+  box-sizing: border-box;
+  cursor: pointer;
+  background-color: transparent;
+  color: var(--font-color);
+  border: 1px solid #4c4c4c;
+}
+button:focus {
+  outline: none;
+  z-index: 10;
+}
+.title {
+  text-align: center;
+}
+.app {
+  display: grid;
+  justify-content: center;
+}
+.field {
+  margin: 0 10px;
+  width: calc(100% - 20px);
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+.field__tiles {
+  --width: 8;
+  --heigth: 8;
+  margin: 0 auto 10px;
+  padding: 2px;
+  display: grid;
+  gap: 2px;
+  grid-template-columns: repeat(var(--width), var(--tile-size));
+  grid-template-rows: repeat(var(--height), var(--tile-size));
+  overflow: auto;
+}
+
+.tile[data-location='last'] ~ .tile {
+  display: none;
+}
+button {
+  font-size: 20px;
+  line-height: 20px;
+  background-color: #3c3c3c;
+  background: linear-gradient(to bottom, hsl(0deg 0% 24.41%), hsl(0deg 0% 18.9%));
+  box-shadow: 0 0 3px 3px #1e1e1e;
+
+  /* dark 
+  background: linear-gradient(to bottom, hsl(0deg 0% 24.41%), hsl(0deg 0% 18.11%));
+    box-shadow: 0 0 3px 3px #1e1e1e;
+    */
+}
+button:hover {
+  background: linear-gradient(to bottom, hsl(0deg 0% 33.07%), hsl(0deg 0% 22.05%));
+}
+button:focus-visible {
+  outline: 2px solid transparent;
+  outline-color: #fff;
+  outline-offset: 1px;
+  z-index: 12;
+}
+.tile {
+  font-size: 20px;
+  line-height: 20px;
+  z-index: 10;
+}
+button:disabled,
+button[disabled='true'],
+button[disabled='disabled'],
+.tile:active,
+.sizes-container__button[aria-checked='true'] {
+  background: #242424;
+  box-shadow: inset 0 0 5px 1px hsl(0deg 0% 11.02%);
+  border-color: #2e2e2e;
+  text-shadow: 0 0 3px #0c0c0c;
+  cursor: default;
+}
+.sizes-container__button:disabled {
+  opacity: 0.4;
+}
+.tile[disabled='true'],
+.tile:active {
+  margin: -1px;
+  z-index: 8;
+}
+.tile[data-type='one'] {
+  color: var(--one-color);
+}
+.tile[data-type='two'] {
+  color: var(--two-color);
+}
+.tile[data-type='three'] {
+  color: var(--three-color);
+}
+.tile[data-type='four'] {
+  color: var(--four-color);
+}
+.tile[data-type='five'] {
+  color: var(--five-color);
+}
+.tile[data-type='six'] {
+  color: var(--six-color);
+}
+.tile[data-type='seven'] {
+  color: var(--seven-color);
+}
+.tile[data-type='eight'] {
+  color: var(--eight-color);
+}
+.tile[aria-label='mine'] {
+  position: relative;
+  color: var(--mine-color);
+}
+.tile[aria-label='mine'][data-state='incorrect'] {
+  color: hsl(0 0% 14%);
+  background-color: var(--incorrect-color);
+  border-color: var(--incorrect-color);
+  z-index: 11;
+}
+.tile[aria-label='mine'] {
+  color: var(--mine-color);
+}
+.mine__icon::before,
+.tile[aria-label='mine']::before {
+  --weight: 1px;
+  --shift: 1px;
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  width: 60%;
+  height: 60%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(
+      0deg,
+      transparent calc(50% - var(--weight) - var(--shift)),
+      currentColor calc(50% - var(--weight)),
+      currentColor calc(50% + var(--weight)),
+      transparent calc(50% + var(--weight) + var(--shift))
+    ),
+    linear-gradient(
+      45deg,
+      transparent calc(50% - var(--weight) - var(--shift)),
+      currentColor calc(50% - var(--weight)),
+      currentColor calc(50% + var(--weight)),
+      transparent calc(50% + var(--weight) + var(--shift))
+    ),
+    linear-gradient(
+      90deg,
+      transparent calc(50% - var(--weight) - var(--shift)),
+      currentColor calc(50% - var(--weight)),
+      currentColor calc(50% + var(--weight)),
+      transparent calc(50% + var(--weight) + var(--shift))
+    ),
+    linear-gradient(
+      -45deg,
+      transparent calc(50% - var(--weight) - var(--shift)),
+      currentColor calc(50% - var(--weight)),
+      currentColor calc(50% + var(--weight)),
+      transparent calc(50% + var(--weight) + var(--shift))
+    );
+}
+.mine__icon::after,
+.tile[aria-label='mine']::after {
+  content: '';
+  display: flex;
+  width: 44%;
+  height: 44%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: currentColor;
+  transform: translate(-50%, -50%);
+}
+.tile[aria-label='flag'] {
+  position: relative;
+}
+.flag__icon::before,
+.tile[aria-label='flag']::before {
+  --weight: 1px;
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  width: 15px;
+  height: 76%;
+  transform: translate(-74%, -50%);
+  overflow: hidden;
+  background: linear-gradient(
+      90deg,
+      transparent calc(40% - var(--weight)),
+      currentColor calc(40% - var(--weight)),
+      currentColor calc(40% + var(--weight)),
+      transparent calc(40% + var(--weight))
+    ),
+    linear-gradient(
+      0deg,
+      transparent calc(0% - var(--weight)),
+      currentColor calc(0% - var(--weight)),
+      currentColor 3px,
+      transparent 3px
+    );
+}
+.flag__icon::after,
+.tile[aria-label='flag']::after {
+  content: '';
+  display: flex;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  justify-content: center;
+  align-items: center;
+  transform: translate(-42%, -73%);
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-left: 12px solid hsl(0 100% 76%);
+  border-bottom: 6px solid transparent;
+}
+.tile[data-state='incorrect'][aria-label='no mine here'] {
+  position: relative;
+}
+.tile[data-state='incorrect'][aria-label='no mine here']::after {
+  --weight: 3px;
+  content: '';
+  color: var(--incorrect-color);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  width: 60%;
+  height: 60%;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+  background: linear-gradient(
+      45deg,
+      transparent calc(50% - var(--weight)),
+      currentColor calc(50% - var(--weight)),
+      currentColor calc(50% + var(--weight)),
+      transparent calc(50% + var(--weight))
+    ),
+    linear-gradient(
+      -45deg,
+      transparent calc(50% - var(--weight)),
+      currentColor calc(50% - var(--weight)),
+      currentColor calc(50% + var(--weight)),
+      transparent calc(50% + var(--weight))
+    );
+}
+.scoreboard {
+  margin: 10px auto;
+  position: relative;
+  height: 70px;
+}
+.settings {
+  margin: 0 auto 20px;
+  border: none;
+}
+.scoreboard,
+.settings {
+  padding: 10px;
+  width: var(--size);
+  box-sizing: border-box;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  background-color: #242424;
+  box-shadow: inset 0 0px 5px 2px hsl(0deg 0% 11.02%);
+}
+.settings__input {
+  margin: 0 7px;
+}
+.scoreboard__start-button {
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  width: 70px;
+  height: 50px;
+  transform: translateX(-50%);
+  line-height: 40px;
+  font-size: 40px;
+  text-align: center;
+}
+.scoreboard__time,
+.scoreboard__score {
+  padding: 0 5px;
+  display: flex;
+  height: 100%;
+  font-family: monospace;
+  font-size: 24px;
+  align-items: center;
+  background-color: hsl(0deg 5.19% 7.49%);
+  justify-content: center;
+}
+.scoreboard__time,
+.flag__count,
+.mine__count {
+  min-width: 50px;
+  color: red;
+}
+.scoreboard__flag,
+.scoreboard__mine {
+  display: flex;
+  align-items: center;
+}
+.flag__icon {
+  position: relative;
+  width: 30px;
+  height: 30px;
+}
+.mine__icon {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+.sizes-container {
+  margin: 0 auto 15px;
+  width: var(--size);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sizes-container__button {
+  min-height: 36px;
+  flex-grow: 1;
+}
+.sizes-container__button[data-type='custom'] {
+  width: 120px;
+}
