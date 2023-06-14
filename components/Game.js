@@ -12,10 +12,12 @@ class Game {
       {width: 30, height: 16, mine: 99},
       {width: 4, height: 4, mine: 4, custom: true},
     ],
+    maxsize = {width: 200, height: 200},
   }) {
     this.parentNode = parentNode;
     this.tiles = [];
     this.sizes = sizes;
+    this.maxsize = maxsize;
     this.width = sizes[0].width;
     this.height = sizes[0].height;
     this.mine = sizes[0].mine;
@@ -27,8 +29,8 @@ class Game {
     this.init();
   }
 
-  getTilesElements(size) {
-    return Array(size * size)
+  getTilesElements() {
+    return Array(this.width * this.height)
       .fill()
       .reduce((str, value, index) => {
         str =
@@ -69,7 +71,7 @@ class Game {
           size.width
         } data-height=${size.height} data-mine=${size.mine} aria-checked='${
           size.width === this.width && size.height === this.height
-        }' ${disabled}>${width} x ${height}</button>`;
+        }' ${disabled}>${width} × ${height}</button>`;
       return str;
     }, '');
   }
@@ -87,15 +89,21 @@ class Game {
     <span class="scoreboard__time"></span>\
     </article>\
     <article class='field' aria-label='field'>\
-    <div class='field__tiles'>${this.getTilesElements(this.width)}</div>\
+    <div class='field__tiles'>${this.getTilesElements()}</div>\
     </article>\
     <div class="sizes-container">${this.getSizesButtonsElements()}</div>\
+    <form action='#'>\
     <fieldset class='settings'>\
     <legend>Размеры поля</legend>\
-    <label for='width'>ширина:<input class='settings__input' type='number' id='width' min='4' max='50' value='4'/></label>\
-    <label for='height'>высота:<input class='settings__input' type='number' id='height' min='4' max='50' value='4'/></label>\
+    <label for='width'>ширина:<input class='settings__input' type='number' id='width' min='4' max='${
+      this.maxsize.width
+    }' value='4'/></label>\
+    <label for='height'>высота:<input class='settings__input' type='number' id='height' min='4' max='${
+      this.maxsize.height
+    }' value='4'/></label>\
     <label for='mine'>мины:<input class='settings__input' type='number' id='mine' min='1' max='15' value='4'/></label>\
-    </fieldset>`;
+    </fieldset>\
+    </form>`;
 
     return this;
   }
@@ -193,36 +201,40 @@ class Game {
       return;
     }
     if (value === 0) {
-      this.openTilesArea(tile);
+      const processingTiles = new Set([tile]);
+
+      for (let tile of processingTiles) {
+        const {pos, isOpened} = tile;
+
+        if (isOpened) {
+          processingTiles.delete(tile);
+
+          continue;
+        }
+
+        if (!tile.neighboringTiles.length) {
+          determineNumberNextToTheTail(pos, {width: this.width, height: this.height}).forEach(
+            (index) => {
+              tile.neighboringTiles.push(this.tiles[index]);
+            },
+          );
+        }
+
+        this.printTile(tile);
+        processingTiles.delete(tile);
+
+        tile.neighboringTiles.forEach((tile) => {
+          if (tile.value !== 0 && !tile.isOpened) {
+            this.printTile(tile);
+          } else if (tile.value === 0 && !tile.isOpened) {
+            processingTiles.add(tile);
+          }
+        });
+      }
 
       return;
     }
-
     this.printTile(tile);
-  }
-
-  openTilesArea(tile) {
-    const {pos, isOpened} = tile;
-    if (isOpened) return;
-
-    if (!tile.neighboringTiles.length) {
-      determineNumberNextToTheTail(pos, {width: this.width, height: this.height}).forEach(
-        (index) => {
-          tile.neighboringTiles.push(this.tiles[index]);
-        },
-      );
-    }
-
-    const emptyPositionsAroundTail = tile.neighboringTiles.filter((tile) => tile.value === 0);
-    tile.neighboringTiles.forEach((tile) => {
-      if (tile.value !== 0 && !tile.isOpened) {
-        this.printTile(tile);
-      }
-    });
-    this.printTile(tile);
-
-    if (emptyPositionsAroundTail.length !== 0)
-      emptyPositionsAroundTail.forEach((tile) => this.openTilesArea(tile));
   }
 
   addMines(count = this.mine, except) {
@@ -358,7 +370,7 @@ class Game {
           .setAttribute(`data-${target.id}`, value);
         document.querySelector(
           '.sizes-container__button[data-type="custom"]',
-        ).textContent = `${size.width} x ${size.height}`;
+        ).textContent = `${size.width} × ${size.height}`;
         if (
           document
             .querySelector('.sizes-container__button[data-type="custom"]')
