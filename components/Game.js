@@ -163,12 +163,22 @@ class Game {
   }
 
   sound(type) {
-    if (this.currentSound) {
+    if (this.currentSound && this.currentSound.playing) {
       this.currentSound.pause();
       this.currentSound.currentTime = 0;
     }
-    this.sounds[type].play();
+    const playPromise = this.sounds[type].play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then((_) => {
+          this.currentSound.playing = true;
+        })
+        .catch((error) => {
+          console.log(error.message);
+        });
+    }
     this.currentSound = this.sounds[type];
+    this.currentSound.playing = false;
   }
 
   end({result = false, tile}) {
