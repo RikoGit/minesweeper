@@ -162,12 +162,12 @@ class Game {
     this.timer.stop();
   }
 
-  sound(type) {
+  playAudio(audio) {
     if (this.currentSound && this.currentSound.playing) {
       this.currentSound.pause();
       this.currentSound.currentTime = 0;
     }
-    const playPromise = this.sounds[type].play();
+    const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise
         .then((_) => {
@@ -177,7 +177,7 @@ class Game {
           console.log(error.message);
         });
     }
-    this.currentSound = this.sounds[type];
+    this.currentSound = audio;
     this.currentSound.playing = false;
   }
 
@@ -186,14 +186,13 @@ class Game {
 
     if (result) {
       message = '😎';
-      this.sound('win');
+      this.playAudio(this.sounds.win);
     }
     this.timer.stop();
     document.querySelector('.scoreboard__start-button').textContent = message;
 
     if (!result) {
-      this.sound('lose');
-
+      this.playAudio(this.sounds.lose);
       this.tiles.forEach(({value, isFlagged, domElement}) => {
         if (value === 'mine') {
           if (!isFlagged) {
@@ -233,7 +232,7 @@ class Game {
       return;
     }
 
-    this.sound('openTile');
+    this.playAudio(this.sounds.openTile);
 
     if (value === 0) {
       const processingTiles = new Set([tile]);
@@ -315,7 +314,7 @@ class Game {
           this.deleteFlag(this.tiles[index]);
         } else {
           this.setFlag(this.tiles[index]);
-          this.sound('flag');
+          this.playAudio(this.sounds.flag);
         }
       }
     });
@@ -328,7 +327,7 @@ class Game {
       if (target.dataset.type === 'start') {
         this.clear();
         this.start();
-        this.sound('startGame');
+        this.playAudio(this.sounds.startGame);
 
         return;
       }
@@ -347,7 +346,7 @@ class Game {
           mine,
         });
         this.start();
-        this.sound('startGame');
+        this.playAudio(this.sounds.startGame);
         target.setAttribute('aria-checked', true);
         this.tiles[this.width * this.height - 1].domElement.setAttribute('data-location', 'last');
       }
