@@ -10,13 +10,15 @@ class Game {
       {width: 8, height: 8, mine: 10},
       {width: 16, height: 16, mine: 40},
       {width: 30, height: 16, mine: 99},
-      {width: 4, height: 4, mine: 4, custom: true},
+      {width: 0, height: 0, mine: 1, type: 'submit', disabled: true},
     ],
+    minsize = {width: 4, height: 4},
     maxsize = {width: 200, height: 200},
   }) {
     this.parentNode = parentNode;
     this.tiles = [];
     this.sizes = sizes;
+    this.minsize = minsize;
     this.maxsize = maxsize;
     this.width = sizes[0].width;
     this.height = sizes[0].height;
@@ -67,21 +69,16 @@ class Game {
     document.querySelector('.field__tiles').append(...buttonElements);
   }
 
-  getSizesButtonsElements() {
-    return this.sizes.reduce((str, size) => {
-      const width = size.custom ? `?` : size.width;
-      const height = size.custom ? `?` : size.height;
-      const dataType = size.custom ? 'data-type="custom"' : '';
-      const disabled = size.custom ? `disabled` : '';
-      str =
-        str +
-        `<button class='sizes-container__button' ${dataType} type='button' role='radio' data-width=${
-          size.width
-        } data-height=${size.height} data-mine=${size.mine} aria-checked='${
-          size.width === this.width && size.height === this.height
-        }' ${disabled}>${width} × ${height}</button>`;
-      return str;
-    }, '');
+  getSizesButtonsElement({width, height, mine, type = 'button', disabled = false}) {
+    return `<button class='sizes-container__button' type=${type} role='radio'\
+     data-width=${width} data-height=${height} data-mine=${mine} aria-checked='${
+      width === this.width && height === this.height
+    }' ${disabled ? 'disabled' : ''}>\
+    <span class='sizes-container__size'>${width ? width : '?'} × ${height ? height : '?'}</span>\
+    <span class="sizes-container__mine mine">\
+      <span class="mine__icon"></span>\
+      <span class="mine__count">${mine}</span>\
+    </span></button>`;
   }
 
   createDomElement() {
@@ -89,28 +86,49 @@ class Game {
     this.domElement.className = 'app';
     this.domElement.innerHTML = `<h1 class='title'>Сапёр</h1>\
     <article class="scoreboard" aria-label='scoreboard'>\
-    <div class='scoreboard__score'>\
-    <div class="scoreboard__flag flag"><span class="flag__icon"></span><span class="flag__count">0</span></div>\
-    <div class="scoreboard__mine mine"><span class="mine__icon"></span><span class="mine__count">0</span></div>\
-    </div>\
-    <button class='scoreboard__start-button' title='new game' data-type='start' type='button' disabled>&#9786;</button>\
-    <span class="scoreboard__time"></span>\
+      <div class='scoreboard__score'>\
+        <div class="scoreboard__flag flag">\
+          <span class="flag__icon"></span><span class="flag__count">0</span>\
+        </div>\
+        <div class="scoreboard__mine mine">\
+          <span class="mine__icon"></span><span class="mine__count">0</span>
+        </div>\
+      </div>\
+      <button class='scoreboard__start-button' title='new game' data-type='start' type='button' disabled>&#9786;</button>\
+      <span class="scoreboard__time"></span>\
     </article>\
     <article class='field' aria-label='field'>\
-    <div class='field__tiles'>${this.getTilesElements()}</div>\
+      <div class='field__tiles'>${this.getTilesElements()}</div>\
     </article>\
-    <div class="sizes-container">${this.getSizesButtonsElements()}</div>\
-    <form action='#'>\
-    <fieldset class='settings'>\
-    <legend>Размеры поля</legend>\
-    <label for='width'>ширина:<input class='settings__input' type='number' id='width' min='4' max='${
-      this.maxsize.width
-    }' value='4'/></label>\
-    <label for='height'>высота:<input class='settings__input' type='number' id='height' min='4' max='${
-      this.maxsize.height
-    }' value='4'/></label>\
-    <label for='mine'>мины:<input class='settings__input' type='number' id='mine' min='1' max='15' value='4'/></label>\
-    </fieldset>\
+    <div class="sizes-container">${this.sizes
+      .filter((size) => size.type !== 'submit')
+      .reduce((str, size) => {
+        str += this.getSizesButtonsElement(size);
+        return str;
+      }, '')}</div>\
+    <form class='settings-container' action='#'>\
+      <fieldset class='settings'>\
+        <legend>Размеры поля</legend>\
+        <label class='settings__label' for='width'>ширина:<div class="settings__input-container">\
+          <input class='settings__input' type='number' id='width' min='${
+            this.minsize.width
+          }' max='${this.maxsize.width}' value=''/>
+          <span class='settings__error'>от ${this.minsize.width} до ${this.maxsize.width}</span>\
+          </div></label>\
+        <label class='settings__label' for='height'>высота:<div class="settings__input-container">\
+          <input class='settings__input' type='number' id='height' min='${
+            this.minsize.width
+          }' max='${this.maxsize.height}' value=''/><span class='settings__error'>от ${
+      this.minsize.width
+    } до ${this.maxsize.width}</span></div></label>\
+        <label class='settings__label' for='mine'>мины:<div class="settings__input-container">\
+          <input class='settings__input' type='number' id='mine' min='1' max='${
+            this.maxsize.width * this.maxsize.height - 1
+          }' value=''/>\
+          <span class='settings__error'>от 1 до 15</span>\
+          </div></label>\
+    ${this.getSizesButtonsElement(this.sizes.find((size) => size.type === 'submit'))}\
+      </fieldset>\
     </form>`;
 
     return this;
@@ -322,105 +340,125 @@ class Game {
 
   onClickHandler() {
     document.querySelector('.app').addEventListener('click', (event) => {
-      const {target} = event;
+      let {target} = event;
 
-      if (target.dataset.type === 'start') {
-        this.clear();
-        this.start();
-        this.playAudio(this.sounds.startGame);
+      while (target.parentNode != null) {
+        if (target.dataset.type === 'start') {
+          this.clear();
+          this.start();
+          this.playAudio(this.sounds.startGame);
 
-        return;
-      }
-
-      if (target.classList.contains('sizes-container__button')) {
-        const width = Number(target.dataset.width);
-        const height = Number(target.dataset.height);
-        const mine = Number(target.dataset.mine);
-
-        if (target.getAttribute('aria-checked') === 'true') return;
-
-        this.clear();
-        this.setSize({
-          width,
-          height,
-          mine,
-        });
-        this.start();
-        this.playAudio(this.sounds.startGame);
-        target.setAttribute('aria-checked', true);
-        this.tiles[this.width * this.height - 1].domElement.setAttribute('data-location', 'last');
-      }
-
-      if (this.isGameOver) return;
-
-      if (target.classList.contains('tile') && !this.tiles[Number(target.dataset.pos)].isFlagged) {
-        const index = Number(target.dataset.pos);
-        if (!this.isDataReady && this.tiles[index].value === 'mine') {
-          this.tiles[index].neighboringTiles.forEach((tile) => {
-            if (tile.value !== 'mine') tile.value -= 1;
-          });
-          this.tiles[index].value = this.tiles[index].neighboringTiles.filter(
-            (tile) => tile.value === 'mine',
-          ).length;
-
-          this.addMines(1, index);
+          return;
         }
 
-        this.isDataReady = true;
-        document.querySelector('.scoreboard__start-button').removeAttribute('disabled');
-        this.timer.start();
-        this.openTile(this.tiles[index]);
+        if (target.classList.contains('sizes-container__button')) {
+          const width = Number(target.dataset.width);
+          const height = Number(target.dataset.height);
+          const mine = Number(target.dataset.mine);
+
+          if (target.getAttribute('aria-checked') === 'true') return;
+
+          this.clear();
+          this.setSize({
+            width,
+            height,
+            mine,
+          });
+          this.start();
+          this.playAudio(this.sounds.startGame);
+          target.setAttribute('aria-checked', true);
+          this.tiles[this.width * this.height - 1].domElement.setAttribute('data-location', 'last');
+        }
+
+        if (this.isGameOver) return;
+
+        if (
+          target.classList.contains('tile') &&
+          !this.tiles[Number(target.dataset.pos)].isFlagged
+        ) {
+          const index = Number(target.dataset.pos);
+          if (!this.isDataReady && this.tiles[index].value === 'mine') {
+            this.tiles[index].neighboringTiles.forEach((tile) => {
+              if (tile.value !== 'mine') tile.value -= 1;
+            });
+            this.tiles[index].value = this.tiles[index].neighboringTiles.filter(
+              (tile) => tile.value === 'mine',
+            ).length;
+
+            this.addMines(1, index);
+          }
+
+          this.isDataReady = true;
+          document.querySelector('.scoreboard__start-button').removeAttribute('disabled');
+          this.timer.start();
+          this.openTile(this.tiles[index]);
+        }
+
+        target = target.parentNode;
       }
     });
   }
 
   onInputHandler() {
+    const submitButton = document.querySelector('.sizes-container__button[type="submit"]');
+
     document.querySelectorAll('.settings__input').forEach((x) =>
       x.addEventListener('input', (event) => {
         const {target} = event;
-
-        const size = this.sizes.find((size) => size.custom);
-
+        const labelElement = document.querySelector(`.settings__label[for=${target.id}]`);
+        const mineInputElement = document.getElementById('mine');
+        const size = this.sizes.find((size) => size.type === 'submit');
         let value = Number(target.value);
-        if (value < Number(target.min)) {
-          value = Number(target.min);
-        }
-        if (value > Number(target.max)) {
-          value = Number(target.max);
-        }
+        let mineInputElementValue = Number(mineInputElement.value);
 
+        if (value < Number(target.min)) {
+          labelElement.setAttribute('data-state', 'error');
+          value = Number(target.min);
+        } else if (value > Number(target.max)) {
+          labelElement.setAttribute('data-state', 'error');
+          value = Number(target.max);
+        } else labelElement.setAttribute('data-state', 'correct');
         size[`${target.id}`] = value;
 
-        if (target.id !== 'mine') {
+        submitButton.setAttribute(`data-${target.id}`, value);
+
+        if (
+          target.id !== 'mine' &&
+          Number(submitButton.dataset.width) &&
+          Number(submitButton.dataset.height)
+        ) {
           const max = size.width * size.height - 1;
-          const mine =
-            Number(document.getElementById('mine').value) < max
-              ? Number(document.getElementById('mine').value)
-              : max;
+          let mine = size.mine;
+
+          if (mineInputElementValue < 1) {
+            mine = 1;
+          } else if (mineInputElementValue > max) {
+            mine = max;
+          } else mine = mineInputElementValue;
           size.mine = mine;
-          document.getElementById('mine').setAttribute('max', max);
-          document
-            .querySelector('.sizes-container__button[data-type="custom"]')
-            .setAttribute('data-mine', mine);
+          mineInputElement.setAttribute('max', max);
+          submitButton.setAttribute('data-mine', mine);
+          document.querySelector(
+            'label[for="mine"] .settings__error',
+          ).textContent = `от 1 до ${max}`;
+          submitButton.querySelector('.mine__count').textContent = `${size.mine}`;
         }
 
-        document
-          .querySelector('.sizes-container__button[data-type="custom"]')
-          .setAttribute(`data-${target.id}`, value);
-        document.querySelector(
-          '.sizes-container__button[data-type="custom"]',
-        ).textContent = `${size.width} × ${size.height}`;
+        if (target.id === 'mine') {
+          submitButton.querySelector('.mine__count').textContent = `${size.mine}`;
+        } else {
+          submitButton.querySelector('.sizes-container__size').textContent = `${
+            size.width ? size.width : '?'
+          } × ${size.height ? size.height : '?'}`;
+        }
+
         if (
-          document
-            .querySelector('.sizes-container__button[data-type="custom"]')
-            .hasAttribute('disabled')
+          Number(submitButton.dataset.width) &&
+          Number(submitButton.dataset.height) &&
+          submitButton.hasAttribute('disabled')
         )
-          document
-            .querySelector('.sizes-container__button[data-type="custom"]')
-            .removeAttribute('disabled');
-        document
-          .querySelector('.sizes-container__button[data-type="custom"]')
-          .setAttribute('aria-checked', false);
+          submitButton.removeAttribute('disabled');
+        submitButton.setAttribute('aria-checked', false);
       }),
     );
   }
