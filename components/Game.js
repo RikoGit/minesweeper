@@ -368,11 +368,12 @@ class Game {
           this.playAudio(this.sounds.startGame);
           target.setAttribute('aria-checked', true);
           this.tiles[this.width * this.height - 1].domElement.setAttribute('data-location', 'last');
+
+          return;
         }
 
-        if (this.isGameOver) return;
-
         if (
+          !this.isGameOver &&
           target.classList.contains('tile') &&
           !this.tiles[Number(target.dataset.pos)].isFlagged
         ) {
