@@ -352,6 +352,7 @@ class Game {
         }
 
         if (target.classList.contains('sizes-container__button')) {
+          event.preventDefault();
           const width = Number(target.dataset.width);
           const height = Number(target.dataset.height);
           const mine = Number(target.dataset.mine);
